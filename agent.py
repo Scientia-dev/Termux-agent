@@ -1,21 +1,18 @@
-
 import os, json, subprocess, requests
 from flask import Flask, render_template, request, jsonify
 
-# ---------- config ----------
 API_KEY = os.environ.get("GROQ_API_KEY", "")
 API_URL = "https://api.groq.com/openai/v1/chat/completions"
 MODEL = "openai/gpt-oss-120b"
 
 if not API_KEY:
-    raise SystemExit("GROQ_API_KEY not set. Run: export GROQ_API_KEY='gsk_...'")
+    raise SystemExit("GROQ_API_KEY not set. Run: export GROQ_API_KEY='your_key_here'")
 
 SYSTEM = """You are a coding agent running on Android in Termux.
 You can run terminal commands and read/write files using tools.
 Work in small safe steps. Never run destructive commands (rm -rf, etc.).
 Never touch files outside the current folder. When done, summarize what you did."""
 
-# ---------- tools ----------
 tools = [
     {"type": "function", "function": {
         "name": "run_terminal",
@@ -61,7 +58,6 @@ def read_file(path):
     except Exception as e:
         return f"error: {e}"
 
-# ---------- llm + loop ----------
 def call_llm(messages):
     r = requests.post(API_URL,
         headers={"Authorization": f"Bearer {API_KEY}",
@@ -99,7 +95,6 @@ def agent(user_msg):
                              "content": result})
     return "stopped: too many steps"
 
-# ---------- web ----------
 app = Flask(__name__)
 
 @app.route("/")
